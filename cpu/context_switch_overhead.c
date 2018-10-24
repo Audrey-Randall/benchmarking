@@ -55,45 +55,41 @@ int main()
 	}
 
 
-	uint64_t start, end, avg_time_spent = 0;
-	long time_spent;
+	uint64_t start, end, time_spent, avg_time_spent = 0;
 	for(i=0;i<max_trials;i++)
 	{
 		// Create pipe
 		pipe(pipefd);
 
+		// Start timer
+		rdtsc();
 		cpid = fork();
 		if (cpid == 0) 
 		{
 			// Child process: collect time diff
 			rdtsc1();
+			start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 			end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
-			// time_spent = end - start;		
+			time_spent = end - start;		
 			//cpu_id = sched_getcpu();
 			//printf("Child CPU ID: %d\n", cpu_id);
 			// printf("%lu\n", time_spent);
 			
 			// Write the time diff to parent
 			close(pipefd[0]);
-			write(pipefd[1], &end, sizeof(end));
+			write(pipefd[1], &time_spent, sizeof(time_spent));
 			close(pipefd[1]);
 			
 			exit(0);
 		}
 		else
 		{
-			// Start timer
-			rdtsc();
-
 			// Parent: Read the time diff from child (also forces a context switch)
 			close(pipefd[1]);
-			read(pipefd[0], &end, sizeof(end));
+			read(pipefd[0], &time_spent, sizeof(time_spent));
 			close(pipefd[0]);
 		
-			start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-			time_spent = end - start;
-
-			// printf("%ld\n", time_spent);
+			// printf("%lu\n", time_spent);
 			avg_time_spent += time_spent;
 
 			// Wait for child
