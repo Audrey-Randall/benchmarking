@@ -6,21 +6,25 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <unistd.h>
 #include <sys/resource.h>
 #include <sched.h>
+#include <math.h>
 
 
-
-// Assumes long int on 64-bit can hold seconds and nanoseconds together
-long time_diff_in_ns(struct timespec start, struct timespec finish)
-{
-    long seconds = finish.tv_sec - start.tv_sec;
-    long ns = finish.tv_nsec - start.tv_nsec;
-    if (start.tv_nsec > finish.tv_nsec) {
-        --seconds;
-        ns += 1000000000;
-    }
-    return seconds*1000000000 + ns;
+double stdev(double* vals, int len){
+	  double avg = 0.0;
+	  for(int i = 0; i < len; i++) {
+			avg += vals[i];
+	  }
+	  avg /= len;
+	  double std = 0;
+	  for(int i = 0; i < len; i++) {
+			double diff = vals[i] - avg;
+			std += (diff*diff);
+	  }
+	  double new_std = sqrt(std/len);
+	  return new_std;
 }
 
 
@@ -82,9 +86,24 @@ int main()
 
     // Get the CPU on which the thread is running
     cpu_id = sched_getcpu();
-    printf("CPU ID: %d\n", cpu_id);
+    // printf("CPU ID: %d\n", cpu_id);
 
-    uint64_t time_spent, avg_time_spent = 0;
+	// Set parent CPU affinity. It'll be inherited by the child as well - this will restrict both processes to one core.
+	cpu_set_t set;
+	CPU_ZERO(&set);
+	CPU_SET(cpu_id, &set);
+	sched_setaffinity(getpid(), sizeof(set), &set);
+
+	// Set process priority (nice value) to the highest. This will be inherited by the child process as well.
+	if(setpriority(PRIO_PROCESS, getpid(), -20) != 0)
+	{
+		perror("Setting process priority failed!");
+		exit(-1);
+	}
+
+	FILE* fp = fopen ("0_args.txt", "a+");
+    uint64_t time_spent;
+	double avg_time_spent = 0, total_time_spent = 0, records[max_trials];
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -94,12 +113,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("0 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
-    avg_time_spent = 0;
+	fp = fopen ("1_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -109,12 +132,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("1 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
-    avg_time_spent = 0;
+	fp = fopen ("2_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -124,12 +151,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("2 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
-    avg_time_spent = 0;
+	fp = fopen ("3_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -139,11 +170,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("3 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
-    avg_time_spent = 0;
+
+	fp = fopen ("4_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -153,12 +189,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("4 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
-    avg_time_spent = 0;
+	fp = fopen ("5_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -168,12 +208,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("5 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
-    avg_time_spent = 0;
+	fp = fopen ("6_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -183,12 +227,16 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("6 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
-    avg_time_spent = 0;
+	fp = fopen ("7_args.txt", "a+");
+    total_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -198,14 +246,17 @@ int main()
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
         time_spent = end - start;
-        avg_time_spent += time_spent;
+		// printf("%lu, ", time_spent);
+        total_time_spent += time_spent;
+		records[i] = time_spent;
     }
-    printf("7 arguments: %lf cycles\n", avg_time_spent*1.0/max_trials);
+    // printf("%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
+    fprintf(fp, "%lf, %lf\n", total_time_spent*1.0/max_trials, stdev(records, max_trials));
 
 
     // Get the CPU on which the thread is running
     cpu_id = sched_getcpu();
-    printf("CPU ID: %d\n", cpu_id);
+    // printf("======================================\n");
 
     return 0;
 }
