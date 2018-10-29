@@ -29,15 +29,49 @@ static __inline__ unsigned long long rdtsc1(void)
 int roll();
 int unroll();
 
-int main()
-{
+double stdev(double* vals, int len){
+  double avg = 0.0;
+  for(int i = 0; i < len; i++) {
+    avg+= vals[i];
+  }
+  avg /= len;
+  double std = 0;
+  for(int i = 0; i < len; i++) {
+    double diff = vals[i] - avg;
+    std += (diff*diff);
+    //printf("%lf ", diff*diff);
+  }
+  double new_std = sqrt(std/len);
+  printf("FUNCTION Avg: %lf Stdev: %lf\n", avg, new_std);
+  return new_std;
+}
+
+void timing_overhead(){
+  uint64_t start, end;
+  double avg_cycles = 0.0;
+  int max_trials = 1000;
+  double cycles[max_trials];
+  for(int i = 0; i < max_trials; i++) {
+    rdtsc();
+    rdtsc1();
+    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    avg_cycles += (end - start);
+    cycles[i] = end - start;
+    //printf("Start: %ld\nEnd: %ld\n%lf \n",start, end, cycles[i]);
+  }
+  avg_cycles /= max_trials;
+  stdev(cycles, max_trials);
+}
+
+int loop_overhead() {
   uint64_t start, end;
   int i, x;
-  int max_trials = 1000000;
+  int max_trials = 100;
   double roll_avg = 0.0;
   double unroll_avg = 0.0;
-  int roll_times[max_trials];
-  int unroll_times[max_trials];
+  double roll_times[max_trials];
+  double unroll_times[max_trials];
   for (i=0; i<max_trials; i++) {
     rdtsc();
     x = roll(1);
@@ -57,22 +91,32 @@ int main()
     unroll_avg += end - start;
     unroll_times[i] = end - start;
   }
-  roll_avg = roll_avg/max_trials;
-  unroll_avg = unroll_avg/max_trials;
-  double roll_std = 0;
-  double unroll_std = 0;
-  for(i = 0; i < max_trials; i++) {
-    double roll_diff = roll_times[i] - roll_avg;
-    roll_std += roll_diff*roll_diff;
-    double unroll_diff = unroll_times[i] - unroll_avg;
-    unroll_std += unroll_diff*unroll_diff;
+
+  printf("Unroll times: \n");
+  for(i=0; i<max_trials; i++){
+    printf("%lf, ",unroll_times[i]);
   }
-  roll_std = sqrt(roll_std/max_trials);
-  unroll_std = sqrt(unroll_std/max_trials);
+  printf("\nRoll times: \n");
+  for(i=0; i<max_trials; i++){
+    printf("%lf, ",roll_times[i]);
+  }
+  //We're getting some weird behavior on the first trial - eliminate it
+  roll_avg = roll_avg/((double)max_trials*1.0);
+  unroll_avg = unroll_avg/((double)max_trials*1.0);
+  unroll_times[0] = unroll_avg;
+  printf("\nRoll avg: %lf Unroll avg: %lf\n", roll_avg, unroll_avg);
+  double roll_std = stdev(roll_times, max_trials);
+  double unroll_std = stdev(unroll_times, max_trials);
   printf("Rolled loop: %lf ns, stdev = %lf\n", roll_avg/2.7, roll_std/2.7);
   printf("Unrolled loop: %lf ns, stdev = %lf\n", unroll_avg/2.7, unroll_std/2.7);
   printf("Percent Diff: %lf\n", 1.0 - unroll_avg/roll_avg);
   return x;
+}
+
+int main()
+{
+  //timing_overhead();
+  loop_overhead();
 }
 
 int roll(int j) {
