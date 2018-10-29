@@ -1,6 +1,29 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
+
+unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
+
+static __inline__ unsigned long long rdtsc(void)
+{
+    __asm__ __volatile__ ("RDTSC\n\t"
+            "mov %%edx, %0\n\t"
+            "mov %%eax, %1\n\t": "=r" (cycles_high), "=r" (cycles_low)::
+            "%rax", "rbx", "rcx", "rdx");
+    return 0; 
+}
+
+static __inline__ unsigned long long rdtsc1(void)
+{
+    __asm__ __volatile__ ("RDTSC\n\t"
+            "mov %%edx, %0\n\t"
+            "mov %%eax, %1\n\t": "=r" (cycles_high1), "=r" (cycles_low1)::
+            "%rax", "rbx", "rcx", "rdx");
+    return 0;
+}
 
 int procedureCall(int i, int j) {
 	return i + j;
@@ -12,11 +35,8 @@ int systemCall() {
 	return 0;
 }
 
-long nanosec(struct timeval t) {
-	return (((t.tv_sec*1000000) + t.tv_usec)*1000);
-}
-
 int main() {
+	uint64_t start, end;
 	int i, j;
 	long iterations = 1000000;
 	long runs = 10;
@@ -34,22 +54,26 @@ int main() {
 	}
 	for(int r = 0; r < runs; r++) {
 		//Calculate avg time for empty function call
-		gettimeofday(&t1, NULL);
+    	rdtsc();
 		for(int i = 0; i < iterations; i++) {
 			j = procedureCall(r, r);
 		}
-		gettimeofday(&t2, NULL);
-		avg_procedure = (nanosec(t2) - nanosec(t1))/(iterations * 1.0);
+    	rdtsc1();
+    	start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    	end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+		avg_procedure = (end - start)/(iterations * 1.0);
 		fprintf(fp1, "%f\n", avg_procedure );
 
 		//Calculate avg time for procedure call
-		gettimeofday(&t1, NULL);
+    	rdtsc();
 		for(int i = 0; i < iterations; i++) {
 			j = systemCall();
 		}
 
-		gettimeofday(&t2, NULL);
-		avg_syscall = (nanosec(t2) - nanosec(t1))/(iterations * 1.0);
+    	rdtsc1();
+    	start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    	end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+		avg_syscall = (end - start)/(iterations * 1.0);
 		fprintf(fp2, "%f\n", avg_syscall);
 	}
 }
