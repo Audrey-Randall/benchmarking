@@ -5,9 +5,10 @@
 #include <sys/types.h> 
 #include <sys/wait.h> 
 #include <unistd.h> 
+#include <stdlib.h>
 
 #define num_threads 1000
-#define num_processes 100000
+#define num_processes 1000
 
 pthread_t tid[num_threads];
 pid_t processes[num_processes];
@@ -34,6 +35,10 @@ static __inline__ unsigned long long rdtsc1(void)
 
 int runProcess(int i, char * argv[]) {
 	processes[i] = fork();
+	if(processes[i] == 0) {
+		execv(*argv, argv);
+		exit(0);
+	}else if(processes[i] > 0) waitpid(processes[i], 0, 0);
 	return processes[i];
 }
 
@@ -83,7 +88,7 @@ int main() {
     start = ( ((uint64_t)cycles_high << 32) | cycles_low );
     end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
 	process_thread_time = (end - start)/(num_processes * 1.0);	
-	fprintf(stdout, "Process Thread time: %d\n", process_thread_time);
+	fprintf(stdout, "Process time: %d\n", process_thread_time);
 }
 
 
