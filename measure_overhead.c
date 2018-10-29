@@ -103,7 +103,6 @@ int loop_overhead() {
   //We're getting some weird behavior on the first trial - eliminate it
   roll_avg = roll_avg/((double)max_trials*1.0);
   unroll_avg = unroll_avg/((double)max_trials*1.0);
-  unroll_times[0] = unroll_avg;
   printf("\nRoll avg: %lf Unroll avg: %lf\n", roll_avg, unroll_avg);
   double roll_std = stdev(roll_times, max_trials);
   double unroll_std = stdev(unroll_times, max_trials);
