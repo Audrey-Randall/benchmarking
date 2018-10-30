@@ -53,7 +53,7 @@ int runKernelThread(int i) {
 }
 
 int main() {
-	uint64_t start, end; 
+	u_int64_t start, end; 
 	char * argv[3];
 	argv[0] = "first";
 	argv[1] = "second";
@@ -70,8 +70,8 @@ int main() {
 		i++;
 	}
     rdtsc1();
-	start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+	start = ( ((u_int64_t)cycles_high << 32) | cycles_low );
+    end = ( ((u_int64_t)cycles_high1 << 32) | cycles_low1 );
 	kernel_thread_time = (end - start)/(num_threads * 1.0);
 	fprintf(stdout, "Kernel Thread time: %d\n", kernel_thread_time);
 
@@ -85,8 +85,8 @@ int main() {
 	}
     rdtsc1();
 
-    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    start = ( ((u_int64_t)cycles_high << 32) | cycles_low );
+    end = ( ((u_int64_t)cycles_high1 << 32) | cycles_low1 );
 	process_thread_time = (end - start)/(num_processes * 1.0);	
 	fprintf(stdout, "Process time: %d\n", process_thread_time);
 }
