@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
 
@@ -25,6 +26,23 @@ static __inline__ unsigned long long rdtsc1(void)
     return 0;
 }
 
+double stdev(double* vals, int len){
+  double avg = 0.0;
+  for(int i = 0; i < len; i++) {
+    avg+= vals[i];
+  }
+  avg /= len;
+  double std = 0;
+  for(int i = 0; i < len; i++) {
+    double diff = vals[i] - avg;
+    std += (diff*diff);
+    //printf("%lf ", diff*diff);
+  }
+  double new_std = sqrt(std/len);
+  printf("FUNCTION Avg: %lf Stdev: %lf\n", avg, new_std);
+  return new_std;
+}
+
 int procedureCall(int i, int j) {
 	return i + j;
 }
@@ -39,12 +57,15 @@ int main() {
 	uint64_t start, end;
 	int i, j;
 	long iterations = 1000000;
-	long runs = 10;
+	long runs = 100;
 	float avg_syscall, avg_procedure; 
 	struct timeval t1, t2;
+	double cyclesSys[runs];
+	double cyclesProc[runs];
+
+
 	FILE *fp1; 
 	fp1 = fopen("avg_procedure.txt", "w+");
-
 	FILE *fp2; 
 	fp2 = fopen("avg_syscall.txt", "w+");
 
@@ -62,7 +83,8 @@ int main() {
     	start = ( ((uint64_t)cycles_high << 32) | cycles_low );
     	end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
 		avg_procedure = (end - start)/(iterations * 1.0);
-		fprintf(fp1, "%f\n", avg_procedure );
+		cyclesProc[r] = avg_procedure;
+		fprintf(fp1, "%f\n", avg_procedure);
 
 		//Calculate avg time for procedure call
     	rdtsc();
@@ -74,8 +96,12 @@ int main() {
     	start = ( ((uint64_t)cycles_high << 32) | cycles_low );
     	end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
 		avg_syscall = (end - start)/(iterations * 1.0);
+		cyclesSys[r] = avg_syscall;
 		fprintf(fp2, "%f\n", avg_syscall);
 	}
+	stdev(cyclesProc, runs);
+	stdev(cyclesSys, runs);
+
 }
 
 
