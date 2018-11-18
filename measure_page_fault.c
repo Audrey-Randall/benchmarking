@@ -12,24 +12,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
-
-unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
-
-static __inline__ unsigned long long rdtsc(void)
-{
-    __asm__ __volatile__ ("RDTSC\n\t"
-            "mov %%edx, %0\n\t"
-            "mov %%eax, %1\n\t": "=r" (cycles_high), "=r" (cycles_low)::
-            "%rax", "rbx", "rcx", "rdx");
-}
-
-static __inline__ unsigned long long rdtsc1(void)
-{
-    __asm__ __volatile__ ("RDTSC\n\t"
-            "mov %%edx, %0\n\t"
-            "mov %%eax, %1\n\t": "=r" (cycles_high1), "=r" (cycles_low1)::
-			"%rax", "rbx", "rcx", "rdx");
-}
+#include "util.h"
 
 int measure_page_fault(char* filename){
   // We need to try to measure a whole page fault, from attempting to access
@@ -63,11 +46,17 @@ int main() {
   printf("Page size: %d\n", getpagesize());
   int reps = 50;
   int num_faults = 0;
-  float measurements[reps];
+  double measurements[reps];
   for(int j = 0; j < 50; j++) {
     measurements[j] = measure_page_fault("test.txt");
     getrusage(RUSAGE_SELF, &r);
-	num_faults += r.ru_majflt;
+	  num_faults += r.ru_majflt;
   }
   printf("Total page faults: %d\n", num_faults);
+
+  double stdev, avg;
+  stdev_and_avg(&measurements[2], reps-2, &avg, &stdev);
+  printf("Before removing outliers, avg = %f and stdev = %f\n", avg, stdev);
+  strip_outliers(measurements, reps, avg, 1000);
+  //printf("Standard deviation: %f Average: %f\n", stdev, avg);
 }
