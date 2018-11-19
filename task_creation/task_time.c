@@ -84,29 +84,17 @@ int main() {
 	int process_thread_time, kernel_thread_time, id;
 
 	//Create Kernel level threads 
-    rdtsc();
-	int i = 0;
-<<<<<<< HEAD
-	while(i < num_threads) {
-		runKernelThread(i);
-		i++;
-	}
-    rdtsc1();
-	start = ( ((u_int64_t)cycles_high << 32) | cycles_low );
-    end = ( ((u_int64_t)cycles_high1 << 32) | cycles_low1 );
-	kernel_thread_time = (end - start)/(num_threads * 1.0);
-	fprintf(stdout, "Kernel Thread time: %d\n", kernel_thread_time);
-=======
->>>>>>> 74e22f18158d91ea650dac1bc097ee9b038342ff
-
 	for(int r = 0; r < runs; r++) {
+
+		int i = 0;
+		rdtsc();
 		while(i < num_threads) {
 			runKernelThread(i);
 			i++;
 		}
 	    rdtsc1();
-		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-	    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+		start = (((u_int64_t)cycles_high << 32) | cycles_low );
+	    end = ( ((u_int64_t)cycles_high1 << 32) | cycles_low1 );
 		kernel_thread_time = (end - start)/(num_threads * 1.0);
 		//fprintf(stdout, "Kernel Thread time: %d\n", kernel_thread_time);
 		cyclesKernel[r] = kernel_thread_time;
@@ -121,23 +109,15 @@ int main() {
 		}
 	    rdtsc1();
 
-	    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-	    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
-		process_thread_time = (end - start)/(num_processes * 1.0);	
-		//fprintf(stdout, "Process time: %d\n", process_thread_time);
-		cyclesProcess[r] = process_thread_time;
+	    start = ( ((u_int64_t)cycles_high << 32) | cycles_low );
+	    end = ( ((u_int64_t)cycles_high1 << 32) | cycles_low1 );
+	    process_thread_time = (end - start)/(num_processes * 1.0);	
+	    //fprintf(stdout, "System thread %d\n", process_thread_time);
+	    cyclesProcess[r] = process_thread_time;
 	}
-<<<<<<< HEAD
-    rdtsc1();
 
-    start = ( ((u_int64_t)cycles_high << 32) | cycles_low );
-    end = ( ((u_int64_t)cycles_high1 << 32) | cycles_low1 );
-	process_thread_time = (end - start)/(num_processes * 1.0);	
-	fprintf(stdout, "Process time: %d\n", process_thread_time);
-=======
 	stdev(cyclesKernel, runs);
 	stdev(cyclesProcess, runs);
->>>>>>> 74e22f18158d91ea650dac1bc097ee9b038342ff
 }
 
 
