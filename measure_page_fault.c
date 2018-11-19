@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include "util.h"
+#include <string.h>
 
 int measure_page_fault(char* filename){
   // We need to try to measure a whole page fault, from attempting to access
@@ -44,15 +45,25 @@ int measure_page_fault(char* filename){
 int main() {
   struct rusage r;
   printf("Page size: %d\n", getpagesize());
-  int reps = 50;
+  int reps = 20;
   int num_faults = 0;
+  int num_min_faults = 0;
   double measurements[reps];
-  for(int j = 0; j < 50; j++) {
-    measurements[j] = measure_page_fault("test.txt");
+  char* filenames[] = {"test0.txt", "test1.txt", "test2.txt", "test3.txt",
+                      "test4.txt", "test5.txt", "test6.txt", "test7.txt",
+                      "test8.txt", "test9.txt", "test10.txt", "test11.txt",
+                      "test12.txt", "test13.txt", "test14.txt", "test15.txt",
+                      "test16.txt", "test17.txt", "test18.txt", "test19.txt"};
+  for(int j = 0; j < reps; j++) {
+    measurements[j] = measure_page_fault(filenames[j]);
+    printf("%f\n", measurements[j]);
     getrusage(RUSAGE_SELF, &r);
 	  num_faults += r.ru_majflt;
+    //printf("num faults: %ld\n", r.ru_majflt);
+    num_min_faults += r.ru_minflt;
   }
-  printf("Total page faults: %d\n", num_faults);
+  printf("Total major page faults: %d\n", num_faults);
+  printf("Total minor page faults: %d\n", num_min_faults);
 
   double stdev, avg;
   stdev_and_avg(&measurements[2], reps-2, &avg, &stdev);
