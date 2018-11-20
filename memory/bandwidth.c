@@ -45,11 +45,8 @@ int memReads() {
 
 	for(i = 0; i < ARRAY_SIZE/16; i++) {
 		for(j = i; j < ARRAY_SIZE; j+=16) {
-			rdtsc();
-			x += readArr[j];
-			rdtsc1();
-			start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-			end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+			sum += readArr[j];
+			
         	sum += (end - start);
 		}
 	}
@@ -77,8 +74,12 @@ int main()
 
     for(i=0;i<max_trials;i++)
     {
-		time_spent = memReads();
-
+    	rdtsc();
+		memReads();
+		rdtsc1();
+		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+        time_spent = (end - start)/ARRAY_SIZE;
         avg_time_spent += time_spent;
     }
     printf("Bandwidth for reading from memory: %lf cycles\n", avg_time_spent*1.0/max_trials);
