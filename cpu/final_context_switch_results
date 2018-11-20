@@ -1,0 +1,4 @@
+audrey@Merlin:~/anil-benchmarking/benchmarking/cpu$ ./average_runs pswitch_results 
+hereMean: 3740.350900, Std dev: 589.004508, trials: 100
+audrey@Merlin:~/anil-benchmarking/benchmarking/cpu$ ./average_runs tswitch_results 
+hereMean: 6207.522210, Std dev: 65.599393, trials: 100
