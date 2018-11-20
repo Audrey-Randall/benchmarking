@@ -33,18 +33,21 @@ static __inline__ unsigned long long rdtsc1(void)
 
 int main()
 {
-	unsigned long max_size = pow(2, 30) + 1, max_iterations_per_stride = 1000000, max_stride = 100000;
+	unsigned long max_size = pow(2, 31) + 1, max_iterations_per_stride = 1000000, max_stride = 100000;
 	int* arr;	
     uint64_t start, end, cycles_spent, total_cycles_spent;
 	double avg_cycles_spent;
 	srand(time(NULL));
 	
-	for(int size=2; size < max_size; size *= 2)
+	for(unsigned long size=2; size < max_size; size *= 2)
 	{
-		int stride_max = size < max_stride ? size : max_stride;
-		for(int stride = 2; stride < stride_max;stride *= 2)
+		unsigned long stride_max = size < max_stride ? size : max_stride;
+		for(unsigned long stride = 2; stride < stride_max; stride *= 2)		//stride = (stride <= pow(2,20) ? stride+500 : stride*2)
 		{
 			arr = (int*)malloc(size*sizeof(int));
+
+			// This activates L2 cache for some reason.			
+			// for(int j=0; j < size; j++)	arr[j] = rand();
 
 			unsigned long next_access = 0, counter = 0;
 			int temp;
@@ -80,7 +83,7 @@ int main()
 			}
 
 			avg_cycles_spent = total_cycles_spent*1.0/counter;
-			printf("%d %d %lf\n", size, stride, avg_cycles_spent);
+			printf("%lu %lu %lf\n", size, stride, avg_cycles_spent);
 			
 			free(arr);
 		}		

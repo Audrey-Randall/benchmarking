@@ -1,0 +1,31 @@
+
+590  ls /sys/devices/system/cpu/cpu0/cache/
+  591  ls /sys/devices/system/cpu/cpu0/cache/index0
+  592  ls /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size 
+  593  less /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size 
+  594  less /sys/devices/system/cpu/cpu0/cache/index1/coherency_line_size 
+  595  less /sys/devices/system/cpu/cpu0/cache/index2/coherency_line_size 
+  596  less /sys/devices/system/cpu/cpu0/cache/index3/coherency_line_size 
+  597  less /sys/devices/system/cpu/cpu0/cache/index3/size 
+  598  less /sys/devices/system/cpu/cpu0/cache/index2/size 
+  599  less /sys/devices/system/cpu/cpu0/cache/index1/size 
+  600  less /sys/devices/system/cpu/cpu0/cache/index0/size 
+  601  less /sys/devices/system/cpu/cpu0/cache/index0/level
+  602  less /sys/devices/system/cpu/cpu0/cache/index1/level
+  603  less /sys/devices/system/cpu/cpu0/cache/index2/level
+  604  less /sys/devices/system/cpu/cpu0/cache/index3/level
+  605* less /sys/devices/system/cpu/cpu0/cache/index1/
+  606  less /sys/devices/system/cpu/cpu0/cache/index0/level
+  607  less /sys/devices/system/cpu/cpu0/cache/index0/number_of_sets 
+  608  less /sys/devices/system/cpu/cpu0/cache/index2/number_of_sets 
+  609  less /sys/devices/system/cpu/cpu0/cache/index3/number_of_sets 
+  610  less /sys/devices/system/cpu/cpu0/cache/index3/ways_of_associativity 
+  611  less /sys/devices/system/cpu/cpu0/cache/index2/ways_of_associativity 
+  612  less /sys/devices/system/cpu/cpu0/cache/index1/ways_of_associativity 
+
+
+ 626  lscpu | grep cache
+  627  sysfs
+  628  SYSNODE=/sys/devices/system/node
+  629  grep '.*' $SYSNODE/node*/cpu*/cache/index*/* 2>/dev/null |      awk '-F[:/]' '{ printf "%6s %6s %24s %s\n" $6, $7, $9, $10, $11 ; }'
+
