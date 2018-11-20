@@ -13,7 +13,7 @@
 unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
 
 #define max_trials 20 
-#define ARRAY_SIZE 1500000
+#define ARRAY_SIZE 150000
 
 static __inline__ unsigned long long rdtsc(void)
 {
@@ -33,43 +33,53 @@ static __inline__ unsigned long long rdtsc1(void)
     return 0;
 }
 
-void memReads() {
+int memReads() {
 	int readArr[ARRAY_SIZE];
-	int sum = 0;
-	int i = 0;
+	float time[ARRAY_SIZE];
+	int start, end;
 
-	memset(readArr, 1, sizeof readArr);
-	for(i = 0; i < ARRAY_SIZE; i++) {
-		sum += readArr[i];
+	float sum = 0;
+	int i = 0;
+	int j = 0;
+	int x = 0;
+
+	for(i = 0; i < ARRAY_SIZE/16; i++) {
+		for(j = i; j < ARRAY_SIZE; j+=16) {
+			sum += readArr[j];
+			
+        	sum += (end - start);
+		}
 	}
+	return sum / ARRAY_SIZE; 
 
 }
 
 void memWrites() {
 	int writeArr[ARRAY_SIZE];
 	int i = 0;
-	memset(writeArr, 1, sizeof writeArr);
+	int j = 0;
 
-	for(i = 0; i < ARRAY_SIZE; i++) {
-		writeArr[i] = i;
+	for(i = 0; i < ARRAY_SIZE/16; i++) {
+		for(j = i; j < ARRAY_SIZE; j+=16) {
+			writeArr[j] = j;
+		}
 	}
 }
 
 int main()
 {
-	uint64_t time_spent, avg_time_spent = 0;
+	float time_spent, avg_time_spent = 0;
 	int i; 
 	int start, end;
 
     for(i=0;i<max_trials;i++)
     {
-		rdtsc();
+    	rdtsc();
 		memReads();
 		rdtsc1();
-
 		start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 		end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
-        time_spent = (end - start)/ ARRAY_SIZE;
+        time_spent = (end - start)/ARRAY_SIZE;
         avg_time_spent += time_spent;
     }
     printf("Bandwidth for reading from memory: %lf cycles\n", avg_time_spent*1.0/max_trials);
