@@ -30,7 +30,7 @@ static __inline__ unsigned long long rdtsc1(void)
             "%rax", "rbx", "rcx", "rdx");
 }
 
-int main()
+int main(int argc, char** argv)
 {
     int i, cpu_id, cpid, max_trials = 100;
 	int pipefd[2];
@@ -98,6 +98,16 @@ int main()
 	}
 
 	printf("\nAvg. context switch time: %lf\n", avg_time_spent*1.0/max_trials);
+
+	// Write to file if provided
+	if(argc > 1)
+	{
+		FILE *fp;
+
+	   fp = fopen(argv[1], "a+");
+	   fprintf(fp, "%lf\n", avg_time_spent*1.0/max_trials);
+	   fclose(fp);
+	}
 
     return 0;
 }
