@@ -5,6 +5,8 @@
 #include <math.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
 
@@ -49,7 +51,7 @@ int procedureCall(int i, int j) {
 
 int systemCall() {
 	struct timespec start; 
-	clock_gettime(CLOCK_MONOTONIC, &start);
+	syscall(SYS_clock_gettime, &start);
 	return 0;
 }
 
