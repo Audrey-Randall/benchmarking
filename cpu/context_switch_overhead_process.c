@@ -42,9 +42,9 @@ double stdev(double* vals, int len, int debug){
 	  return new_std;
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    int i, cpu_id, cpid, max_trials = 1000000;
+    int i, cpu_id, cpid, max_trials = 100;
 	int p2c_pipe[2];
 	int c2p_pipe[2];
 	uint64_t time_child, time_parent, time_spent, dummy_time = 0;
@@ -123,9 +123,24 @@ int main()
 
 		// printf("Parent CPU ID: %d, Avg. context switch time: %lf, std dev: %lf\n", cpu_id, avg_time_spent*1.0/max_trials, stdev(records, max_trials));
 		avg_time_spent = total_time_spent*1.0/max_trials;
-		std_dev = stdev(records, max_trials, 0);
-		printf("%lf, %lf\n", avg_time_spent, std_dev);
+		printf("Avg. context switch cycles over %d trials: %lf\n", max_trials, avg_time_spent);
+
+		// std_dev = stdev(records, max_trials, 0);
+		// printf("%lf, %lf\n", avg_time_spent, std_dev);
+
+		// Write to file if provided
+		if(argc > 1)
+		{
+			FILE *fp;
+
+		   	fp = fopen(argv[1], "a+");
+		   	fprintf(fp, "%lf\n", avg_time_spent);
+		   	fclose(fp);
+		}
 	}
 
     return 0;
+
+    return 0;
 }
+
