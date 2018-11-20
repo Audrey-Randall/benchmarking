@@ -1,6 +1,9 @@
 
 #define _GNU_SOURCE
+#define N (1024*4)
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -18,6 +21,26 @@ long time_diff_in_ns(struct timespec start, struct timespec finish)
         ns += 1000000000;
     }
     return seconds*1000000000 + ns;
+}
+
+
+// Rdtsc blocks
+unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
+
+static __inline__ unsigned long long rdtsc(void)
+{
+    __asm__ __volatile__ ("RDTSC\n\t"
+            "mov %%edx, %0\n\t"
+            "mov %%eax, %1\n\t": "=r" (cycles_high), "=r" (cycles_low)::
+            "%rax", "rbx", "rcx", "rdx");
+}
+
+static __inline__ unsigned long long rdtsc1(void)
+{
+    __asm__ __volatile__ ("RDTSC\n\t"
+            "mov %%edx, %0\n\t"
+            "mov %%eax, %1\n\t": "=r" (cycles_high1), "=r" (cycles_low1)::
+            "%rax", "rbx", "rcx", "rdx");
 }
 
 void test_procedure_0()
@@ -62,22 +85,25 @@ int main()
     cpu_id = sched_getcpu();
     printf("CPU ID: %d\n", cpu_id);
 
+
+
+    uint64_t start1, end1;
+    rdtsc();
+    test_procedure_0();
+    rdtsc1();
+
+    start1 = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    end1 = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    printf("RDTSC Start: %lu\n", start1);
+    printf("RDTSC End: %lu\n", end1);
+    printf("RDTSC Diff: %lu\n", end1 - start1);
+
+
     long avg_time_spent = 0;
     for(i=0;i<max_trials;i++)
     {
         clock_gettime(CLOCK_REALTIME, &start);
         test_procedure_0();
-        clock_gettime(CLOCK_REALTIME, &finish);
-        time_spent = time_diff_in_ns(start, finish);
-        avg_time_spent += time_spent;
-    }
-    printf("%lfns\n", avg_time_spent*1.0/max_trials);
-
-    avg_time_spent = 0;
-    for(i=0;i<max_trials;i++)
-    {
-        clock_gettime(CLOCK_REALTIME, &start);
-        int a = 1;
         clock_gettime(CLOCK_REALTIME, &finish);
         time_spent = time_diff_in_ns(start, finish);
         avg_time_spent += time_spent;
