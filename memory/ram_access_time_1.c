@@ -1,3 +1,9 @@
+// Spawns child processes to get results from multiple trials.
+// Best results so far.
+// results14.out is good with 2^x datapoints.
+// results16.out is better with 1.2^x datapoints 
+// Taking median result.
+
 #define _GNU_SOURCE
 #define N (1024*4)
 #include <stdio.h>
@@ -47,31 +53,44 @@ int main()
 		exit(-1);
 	}
 
-	for(uint64_t size=2; size < max_size; size *= (size > 100 ? 1.2 : 2))
+	for(int trials = 0; trials<1000; trials++)
 	{
-		arr = (int*)malloc(size*sizeof(int));
-
-		uint64_t next_access = 0, stride = 1, max = 0;
-		int temp = 0;
-		while(next_access < size)
+		int cpid = fork();
+		if(cpid == 0)
 		{
-			rdtsc();
-			temp = arr[next_access];
-			rdtsc1();
-
-			start = ( ((uint64_t)cycles_high << 32) | cycles_low );
-			end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
-			total_cycles_spent = (end - start);
-			if(total_cycles_spent > max)
+			for(uint64_t size=2; size < max_size; size *= (size > 100 ? 1.01 : 2))
 			{
-				max = total_cycles_spent;						
+				arr = (int*)malloc(size*sizeof(int));
+
+				uint64_t next_access = 0, stride = 1, max = 0;
+				int temp = arr[next_access];
+				while(next_access < size)
+				{
+					rdtsc();
+					temp = arr[next_access];
+					rdtsc1();
+
+					start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+					end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+					total_cycles_spent = (end - start);
+					if(total_cycles_spent > max)
+					{
+						max = total_cycles_spent;						
+					}
+
+					next_access += stride;
+					stride *= 2;
+				}
+
+				free(arr);
+				printf("%lu %lu\n", size, max);
 			}
 
-			next_access += stride;
-			stride *= 2;
+			exit(0);
 		}
-
-		free(arr);
-		printf("%lu %lu\n", size, max);
+		else
+		{
+			wait(NULL);
+		}
 	}
 }
