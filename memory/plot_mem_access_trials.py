@@ -13,16 +13,15 @@ with open(input_file, "r") as fp:
 if results[0].__len__() == 2:
 
     sizes = sorted(set(map(lambda r: r[0], results)))
-    values = []
+    values_in_ns = []
     for size in sizes:
         size_filtered = list(map(lambda l: l[1], filter(lambda r: r[0] == size, results)))
-        values.append(np.median(size_filtered))
+        values_in_ns.append(np.median(size_filtered)/2.7)
 
     log_sizes = list(map(lambda r: math.log(r, 2), sizes))
-    log_values = list(map(lambda r: math.log(r, 2), values))
 
     plt.xlabel('Log2 (Array size - number of integers)')
-    plt.ylabel('CPU cycles')
+    plt.ylabel('Latency in ns')
     plt.title('Memory access latency')
-    plt.plot(log_sizes, values)
+    plt.plot(log_sizes, values_in_ns, color="black")
     plt.show()
