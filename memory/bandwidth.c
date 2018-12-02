@@ -8,11 +8,11 @@
 #include <sched.h>
 #include <math.h>
 #include <string.h>
-#include "util.h"
+//#include "util.h"
 
 unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
 
-#define max_trials 20 
+#define max_trials 20
 #define ARRAY_SIZE 150000
 
 static __inline__ unsigned long long rdtsc(void)
@@ -46,14 +46,14 @@ int memReads() {
 	for(i = 0; i < ARRAY_SIZE/16; i++) {
 		for(j = i; j < ARRAY_SIZE; j+=16) {
 			rdtsc();
-			x += readArr[j];
+			x = readArr[j];
 			rdtsc1();
 			start = ( ((uint64_t)cycles_high << 32) | cycles_low );
 			end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
-        	sum += (end - start);
+      sum += x;
 		}
 	}
-	return sum / ARRAY_SIZE; 
+	return sum / ARRAY_SIZE;
 
 }
 
@@ -72,7 +72,7 @@ void memWrites() {
 int main()
 {
 	float time_spent, avg_time_spent = 0;
-	int i; 
+	int i;
 	int start, end;
 
     for(i=0;i<max_trials;i++)
@@ -82,7 +82,7 @@ int main()
         avg_time_spent += time_spent;
     }
     printf("Bandwidth for reading from memory: %lf cycles\n", avg_time_spent*1.0/max_trials);
-	
+
 	for(i=0;i<max_trials;i++)
     {
 		rdtsc();
@@ -97,4 +97,3 @@ int main()
     printf("Bandwidth for writing to memory: %lf cycles\n", avg_time_spent*1.0/max_trials);
 	return 0;
 }
-
