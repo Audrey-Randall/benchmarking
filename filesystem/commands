@@ -1,0 +1,7 @@
+# List all disks
+df
+
+# GEt block size of the file system
+sudo dumpe2fs /dev/sda2 | grep -i "Block size"
+
+
