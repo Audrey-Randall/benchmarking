@@ -36,7 +36,14 @@ static __inline__ unsigned long long rdtsc1(void)
     return 0;
 }
 
-void createFiles(char** file_names, int * file_sizes) {
+int main()
+{
+	FILE *fp1; 
+	fp1 = fopen("results.txt", "w+");
+
+	char file_names[9][50];
+	int file_sizes[9];
+
 	const char alphanum[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 	// Write a few hundred blocks of random data to the file *synchronously*
@@ -47,48 +54,36 @@ void createFiles(char** file_names, int * file_sizes) {
 	while(i < 9) {
 		// Create a file
 		char file_name[50];
-		file_names[i] = file_name;
 		file_sizes[i] = number_of_blocks; 
 		sprintf(file_name, "temp_file_%d", number_of_blocks);
-		printf("%s\n", file_name);
+		strcpy(file_names[i], file_name);
 
-		int total_bytes = number_of_blocks * block_size_bytes;
-		unsigned char* data = malloc(total_bytes);
-		for(int i=0; i < total_bytes; i++)	data[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+		if(fopen(file_name, "r") == 0) {
+			int total_bytes = number_of_blocks * block_size_bytes;
+			unsigned char* data = malloc(total_bytes);
+			for(int i=0; i < total_bytes; i++)	data[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
 
-		int fd = open(file_name, O_WRONLY|O_SYNC|O_CREAT);
-		write(fd, data, total_bytes);
-		close(fd);
+			int fd = open(file_name, O_WRONLY|O_SYNC|O_CREAT);
+			write(fd, data, total_bytes);
+			close(fd);
+		}
 		i++;
 		number_of_blocks *= 2; 
 	}
-}
-
-int main()
-{
-	FILE *fp1; 
-	fp1 = fopen("results.txt", "w+");
-
-	char * file_names[9];
-	int file_sizes[9];
-
-	createFiles(file_names, file_sizes);
 
 	srand(time(0));
 	uint64_t start, end, cpu_cycles_spent, sum_cpu_cycles_spent;
 
-	// Write a few hundred blocks of random data to the file *synchronously*
-	int block_size_bytes = 4096;
-	int number_of_blocks = 1000;
-
 	for(int i = 0; i < 9; i++) {
-		int fd2 = open(file_names[i], O_RDONLY|O_DIRECT|O_SYNC);
+		int fd2 = open(file_names[i], O_RDONLY|O_SYNC);
 		if(fd2 == -1)	perror("File Open Error");
 
 		int total_bytes = file_sizes[i] * block_size_bytes;
 		// Read a random block directly from disk
 		// O_DIRECT reads require buffer to be properly aligned.
-		char* data_block = memalign(block_size_bytes, total_bytes);
+		void* data_block;
+		posix_memalign(&data_block, block_size_bytes, total_bytes);
+
 		int total_random_cycles = 0; 
 		for(int i=0; i<10; i++)
 		{
@@ -116,7 +111,7 @@ int main()
 		{
 			//Sequential Access
 			rdtsc();
-			ret = read(fd2, data_block, block_size_bytes);
+			int ret = read(fd2, data_block, block_size_bytes);
 			if(ret == -1)	perror("File Read Error");
 			rdtsc1();
 
@@ -128,6 +123,6 @@ int main()
 		}
 
 		total_sequential/=10; 
-		fprintf(fp1, "%d %d %d", file_sizes[i], total_random_cycles, total_sequential);
+		fprintf(fp1, "%lf %lf %lf\n", log(file_sizes[i]), log(total_random_cycles), log(total_sequential));
 	}
 }
