@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -9,34 +10,53 @@
 
 unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
 
-// This function was basically taken from https://stackoverflow.com/questions/8189935/is-there-any-way-to-ping-a-specific-ip-address-with-c
-// It was so simple my function looks exactly like the one posted.
-void ping() {
-  int pipe_ends[2];
-  char buffer[1024];
-  pipe(pipe_ends);
+int ping(int trials){
+  int start, end;
+  double cycles[trials];
+  printf("Starting ping...\n");
 
-  if (fork() == 0) {
-      // Duplicate the end of the pipe to stdout
-      dup2(pipe_ends[1], STDOUT_FILENO);
-      execl("/sbin/ping", "ping", "-c 1", "8.8.8.8", (char*)NULL);
-  }
-  else {
-      wait(NULL);
-      // Read from the reading end of the pipe into the buffer and print it
-      read(pipe_ends[0], buffer, 1024);
-      printf("%s\n", buffer);
-  }
+  for (int i = 0; i < trials; i++) {
+    int failed;
 
-  close(pipe_ends[0]);
-  close(pipe_ends[1]);
+    rdtsc();
+    failed = system("ping -c 1 137.110.222.3 > /dev/null");
+    rdtsc1();
+
+    if (failed) printf("Ping failed\n");
+    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    cycles[i] = end - start;
+  }
+  double avg, stdev;
+  stdev_and_avg(cycles, trials, &avg, &stdev);
+  printf("Average: %lf, stdev: %lf\n", avg, stdev);
 }
 
-int client() {
+void check_system_overhead(int num_trials) {
+  int shell_available;
+  int start, end;
+  double cycles[num_trials];
+  printf("Starting system overhead check...\n");
+
+  for(int i = 0; i < num_trials; i++) {
+    rdtsc();
+    shell_available = system(NULL);
+    rdtsc1();
+
+    if (!shell_available) printf("Shell not available\n");
+    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    cycles[i] = end - start;
+  }
+  double avg, stdev;
+  stdev_and_avg(cycles, num_trials, &avg, &stdev);
+  printf("Average: %lf, stdev: %lf\n", avg, stdev);
+}
+
+int client(int num_trials) {
   int sock = -1;
   struct sockaddr_in serv_addr;
   char buffer[1] = {0};
-  int num_trials = 10;
   double cycles[num_trials];
   int start, end;
 
@@ -47,25 +67,29 @@ int client() {
   serv_addr.sin_port = htons(9090);
 
   // Convert IPv4 and IPv6 addresses from text to binary form
-  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+  assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
       printf("\nConnection Failed \n");
       return -1;
   }
-  char* msg = ".";
+  //char* msg = ".";
 
   for(int i = 0; i < num_trials; i++) {
+    char msg[3];
+    sprintf(msg, "%d", i);
+    int n;
     rdtsc();
-    send(sock, msg, strlen(msg), 0);
+    n = send(sock, msg, strlen(msg), 0);
     read(sock, buffer, 1);
     rdtsc1();
+    //printf("Bytes read: %d\n", n);
 
     //printf("%s\n",buffer );
     start = ( ((uint64_t)cycles_high << 32) | cycles_low );
     end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
     cycles[i] = end - start;
-    printf("%lf, ", cycles[i]);
+    //printf("%lf, ", cycles[i]);
   }
   double avg, stdev;
   stdev_and_avg(cycles, num_trials, &avg, &stdev);
@@ -75,13 +99,17 @@ int client() {
 
 int main(int argc, char** argv) {
     if(argc < 2) {
-      printf("Usage: ./client client or ./client ping\n");
+      printf("Usage: ./client <ping> or <client>\n");
       return 1;
     }
 
+    int trials = 500;
+
     if(strcmp(argv[1], "client") == 0) {
-      client();
+      client(trials);
     } else if (strcmp(argv[1], "ping") == 0) {
-      ping();
+      check_system_overhead(trials);
+      ping(trials);
     }
+    return 0;
 }

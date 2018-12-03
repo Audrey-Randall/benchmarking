@@ -19,4 +19,4 @@ page_fault: measure_page_fault.o util.o util.h
 util.o: util.c util.h
 		$(CC) -c util.c
 
-#To run:  sudo nice --20 taskset 0x1 ./measure_overhead
+#To run:  sudo nice --20 taskset 0x1 ./<executable>
