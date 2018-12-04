@@ -97,13 +97,75 @@ int client(int num_trials) {
   return 0;
 }
 
-int bandwidth_client() {
-  int sock = -1;
-  struct sockaddr_in serv_addr;
+void write_bandwidth_measurements(char* file, int* bytes, double* times,
+                                  int len) {
+  FILE *f = fopen(file, "w");
+  if(f == NULL) {
+    printf("Error opening %s\n", file);
+    return;
+  }
+
+  for (int i = 0; i < len; i++) {
+    if (times[i] == 0) break;
+    fprintf(f, "%lf, %d\n", times[i], bytes[i]);
+  }
+  fclose(f);
+}
+
+void perform_bandwidth_measurement(int socket) {
   char buffer[1] = {0};
   int n;
-  char msg[4096];
-  memset(msg, 'a', 1024);
+  int msg_len = 100000;
+  char msg[msg_len];
+  int bytes_sent = 0;
+  int counter = 0;
+  int num_time_measurements = 0;
+
+  int seconds_to_measure = 60;
+  int measure_interval = 100;
+  // When measure_interval=100, measurement code gets called approx. 75 times/sec.
+  // Round up to 100 to prevent overflows.
+  int result_len = 100*measure_interval*seconds_to_measure;
+  int running_bytes_total[result_len];
+  double times[result_len];
+  memset(running_bytes_total, 0, result_len);
+  memset(times, 0, result_len);
+
+  memset(msg, 'a', msg_len);
+
+  struct timespec start={0,0}, end={0,0};
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  double rough_finish_time = start.tv_sec + 0.0000000001*start.tv_nsec +
+                           seconds_to_measure;
+
+  while(1) {
+    n = send(socket, msg, strlen(msg), 0);
+    if(n==-1) {
+      perror("Broke the socket");
+      break;
+    }
+    bytes_sent += n;
+    if (!(counter%measure_interval)) {
+      running_bytes_total[counter/100] = bytes_sent;
+      clock_gettime(CLOCK_MONOTONIC, &end);
+      num_time_measurements++;
+      double rough_time = end.tv_sec + 0.0000000001*end.tv_nsec;
+      //printf("Rough time: %lf\n", rough_time);
+      times[counter/100] = rough_time;
+      //printf("Rough time: %li\n", rough_time);
+      if(rough_time > rough_finish_time) break;
+    }
+    counter++;
+  }
+  printf("Time checked in loop %d times\n", num_time_measurements);
+
+  write_bandwidth_measurements("bandwidth_results.txt", running_bytes_total,
+                                times, result_len);
+}
+
+int client_setup() {
+  int sock = -1;
+  struct sockaddr_in serv_addr;
 
   sock = socket(AF_INET, SOCK_STREAM, 0);
   assert(sock >= 0);
@@ -118,28 +180,7 @@ int bandwidth_client() {
       printf("\nConnection Failed \n");
       return -1;
   }
-
-  int bytes_sent = 0;
-  int counter = 0;
-  int num_time_measurements = 0;
-  struct timespec start={0,0}, end={0,0};
-  clock_gettime(CLOCK_MONOTONIC, &start);
-  long rough_finish_time = start.tv_sec + 0.0000000001*start.tv_nsec + 20;
-  while(1) {
-    n = send(sock, msg, strlen(msg), 0);
-    bytes_sent += n;
-    if (!(counter%100)) {
-      clock_gettime(CLOCK_MONOTONIC, &end);
-      num_time_measurements++;
-      long rough_time = end.tv_sec + 0.0000000001*end.tv_nsec;
-      //printf("Rough time: %li\n", rough_time);
-      if(rough_time > rough_finish_time) break;
-    }
-    counter++;
-  }
-  printf("Time checked in loop %d times\n", num_time_measurements);
-
-  return 0;
+  return sock;
 }
 
 int main(int argc, char** argv) {
@@ -156,7 +197,13 @@ int main(int argc, char** argv) {
       check_system_overhead(trials);
       ping(trials);
     } else if (strcmp(argv[1], "bandwidth") == 0) {
-      bandwidth_client();
+      int sock = client_setup();
+      if (sock > -1) {
+        perform_bandwidth_measurement(sock);
+      } else {
+        printf("Error initializing client: Bandwidth measurement could not be"
+        " performed.\n");
+      }
     }
     return 0;
 }
