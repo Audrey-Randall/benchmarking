@@ -27,10 +27,10 @@ int main(int argc, char** argv) {
   while(1) {
     char buffer[1024] = {0};
     int bytes_read = read(acceptor_socket , buffer, 1024);
-    printf("Buffer: %s\n", buffer);
+    //printf("Buffer: %s\n", buffer);
     char* resp = ".";
     send(acceptor_socket, resp, strlen(resp), 0);
-    printf("Response sent\n");
+    printf(".");
   }
   return 0;
 }

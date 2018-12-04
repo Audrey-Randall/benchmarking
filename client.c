@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <sys/wait.h>
+#include <time.h>
 #include "util.h"
 
 unsigned cycles_low, cycles_high, cycles_low1, cycles_high1;
@@ -73,7 +74,6 @@ int client(int num_trials) {
       printf("\nConnection Failed \n");
       return -1;
   }
-  //char* msg = ".";
 
   for(int i = 0; i < num_trials; i++) {
     char msg[3];
@@ -97,6 +97,51 @@ int client(int num_trials) {
   return 0;
 }
 
+int bandwidth_client() {
+  int sock = -1;
+  struct sockaddr_in serv_addr;
+  char buffer[1] = {0};
+  int n;
+  char msg[4096];
+  memset(msg, 'a', 1024);
+
+  sock = socket(AF_INET, SOCK_STREAM, 0);
+  assert(sock >= 0);
+
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(9090);
+
+  // Convert IPv4 and IPv6 addresses from text to binary form
+  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+
+  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+      printf("\nConnection Failed \n");
+      return -1;
+  }
+
+  int bytes_sent = 0;
+  int counter = 0;
+  int num_time_measurements = 0;
+  struct timespec start={0,0}, end={0,0};
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  long rough_finish_time = start.tv_sec + 0.0000000001*start.tv_nsec + 20;
+  while(1) {
+    n = send(sock, msg, strlen(msg), 0);
+    bytes_sent += n;
+    if (!(counter%100)) {
+      clock_gettime(CLOCK_MONOTONIC, &end);
+      num_time_measurements++;
+      long rough_time = end.tv_sec + 0.0000000001*end.tv_nsec;
+      //printf("Rough time: %li\n", rough_time);
+      if(rough_time > rough_finish_time) break;
+    }
+    counter++;
+  }
+  printf("Time checked in loop %d times\n", num_time_measurements);
+
+  return 0;
+}
+
 int main(int argc, char** argv) {
     if(argc < 2) {
       printf("Usage: ./client <ping> or <client>\n");
@@ -110,6 +155,8 @@ int main(int argc, char** argv) {
     } else if (strcmp(argv[1], "ping") == 0) {
       check_system_overhead(trials);
       ping(trials);
+    } else if (strcmp(argv[1], "bandwidth") == 0) {
+      bandwidth_client();
     }
     return 0;
 }
