@@ -85,7 +85,7 @@ int main()
 		posix_memalign(&data_block, block_size_bytes, total_bytes);
 
 		int total_random_cycles = 0; 
-		for(int i=0; i<10; i++)
+		for(int i=0; i<10000; i++)
 		{
 			//Random Access 
 			int offset = (rand() % number_of_blocks) * block_size_bytes;
@@ -103,11 +103,11 @@ int main()
 
 			total_random_cycles += cpu_cycles_spent; 
 		}
-
-		total_random_cycles/=10; 
-
+	
+		fd2 = open(file_names[i], O_RDONLY|O_SYNC);
+		total_random_cycles/=10000; 
 		int total_sequential = 0; 
-		for(int i=0; i < 10; i++)
+		for(int i=0; i < 10000; i++)
 		{
 			//Sequential Access
 			rdtsc();
@@ -122,7 +122,7 @@ int main()
 			total_sequential += cpu_cycles_spent;  
 		}
 
-		total_sequential/=10; 
-		fprintf(fp1, "%lf %lf %lf\n", log(file_sizes[i]), log(total_random_cycles), log(total_sequential));
+		total_sequential/=10000; 
+		fprintf(fp1, "%f %f %f\n", log(file_sizes[i]), log(total_random_cycles), log(total_sequential));
 	}
 }
