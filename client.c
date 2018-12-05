@@ -98,7 +98,7 @@ int rtt_client(int num_trials) {
   return 0;
 }
 
-void write_bandwidth_measurements(char* file, int* bytes, double* times,
+void write_bandwidth_measurements(char* file, long long int* bytes, double* times,
                                   int len) {
   FILE *f = fopen(file, "w");
   if(f == NULL) {
@@ -108,7 +108,7 @@ void write_bandwidth_measurements(char* file, int* bytes, double* times,
 
   for (int i = 0; i < len; i++) {
     if (times[i] == 0) break;
-    fprintf(f, "%lf, %d\n", times[i], bytes[i]);
+    fprintf(f, "%lf, %lld\n", times[i], bytes[i]);
   }
   fclose(f);
 }
@@ -118,16 +118,16 @@ void perform_bandwidth_measurement(int socket) {
   int n;
   int msg_len = 64000;
   char msg[msg_len];
-  long int bytes_sent = 0;
+  long long int bytes_sent = 0;
   int counter = 0;
   int num_time_measurements = 0;
 
-  int seconds_to_measure = 15;
+  int seconds_to_measure = 30;
   int measure_interval = 100;
   // When measure_interval=100, measurement code gets called approx. 75 times/sec.
   // Round up to 100 to prevent overflows.
   int result_len = 100*measure_interval*seconds_to_measure;
-  int running_bytes_total[result_len];
+  long long int running_bytes_total[result_len];
   double times[result_len];
   memset(running_bytes_total, 0, result_len);
   memset(times, 0, result_len);
