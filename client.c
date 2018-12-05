@@ -54,7 +54,7 @@ void check_system_overhead(int num_trials) {
   printf("Average: %lf, stdev: %lf\n", avg, stdev);
 }
 
-int client(int num_trials) {
+int rtt_client(int num_trials) {
   int sock = -1;
   struct sockaddr_in serv_addr;
   char buffer[1] = {0};
@@ -242,14 +242,14 @@ int measure_handshake_time(int num_trials) {
 
 int main(int argc, char** argv) {
     if(argc < 2) {
-      printf("Usage: ./client <ping> or <client>\n");
+      printf("Usage: ./client <option> where option is rtt, ping, bandwidth, or setup\n");
       return 1;
     }
 
     int trials = 500;
 
-    if(strcmp(argv[1], "client") == 0) {
-      client(trials);
+    if(strcmp(argv[1], "rtt") == 0) {
+      rtt_client(trials);
     } else if (strcmp(argv[1], "ping") == 0) {
       check_system_overhead(trials);
       ping(trials);
