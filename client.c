@@ -115,13 +115,13 @@ void write_bandwidth_measurements(char* file, int* bytes, double* times,
 void perform_bandwidth_measurement(int socket) {
   char buffer[1] = {0};
   int n;
-  int msg_len = 100000;
+  int msg_len = 64000;
   char msg[msg_len];
-  int bytes_sent = 0;
+  long int bytes_sent = 0;
   int counter = 0;
   int num_time_measurements = 0;
 
-  int seconds_to_measure = 60;
+  int seconds_to_measure = 30;
   int measure_interval = 100;
   // When measure_interval=100, measurement code gets called approx. 75 times/sec.
   // Round up to 100 to prevent overflows.
@@ -174,7 +174,7 @@ int client_setup() {
   serv_addr.sin_port = htons(9090);
 
   // Convert IPv4 and IPv6 addresses from text to binary form
-  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+  assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
       printf("\nConnection Failed \n");

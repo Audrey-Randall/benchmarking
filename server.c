@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
     int bytes_read = read(acceptor_socket , buffer, 1024);
     //printf("Buffer: %s\n", buffer);
     char* resp = ".";
-    send(acceptor_socket, resp, strlen(resp), 0);
-    printf(".");
+    //send(acceptor_socket, resp, strlen(resp), 0);
+    //printf(".");
   }
   return 0;
 }
