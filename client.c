@@ -20,7 +20,8 @@ int ping(int trials){
     int failed;
 
     rdtsc();
-    failed = system("ping -c 1 137.110.222.3 > /dev/null");
+    // failed = system("ping -c 1 137.110.222.3 > /dev/null");
+    failed = system("ping -c 1 127.0.0.1 > /dev/null");
     rdtsc1();
 
     if (failed) printf("Ping failed\n");
@@ -68,8 +69,8 @@ int rtt_client(int num_trials) {
   serv_addr.sin_port = htons(9090);
 
   // Convert IPv4 and IPv6 addresses from text to binary form
-  assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
-  // assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+  // assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
       printf("\nConnection Failed \n");
@@ -121,7 +122,7 @@ void perform_bandwidth_measurement(int socket) {
   int counter = 0;
   int num_time_measurements = 0;
 
-  int seconds_to_measure = 9;
+  int seconds_to_measure = 15;
   int measure_interval = 100;
   // When measure_interval=100, measurement code gets called approx. 75 times/sec.
   // Round up to 100 to prevent overflows.
@@ -196,8 +197,8 @@ int measure_handshake_time(int num_trials) {
   struct sockaddr_in serv_addr;
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(9090);
-   assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
-  // assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+  // assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
 
   for (int i = 0; i < num_trials; i++) {
     sock = socket(AF_INET, SOCK_STREAM, 0);

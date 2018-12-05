@@ -1,72 +1,122 @@
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 528229.162000, stdev: 46302.116291
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 526642.734000, stdev: 74752.522884
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 535178.766000, stdev: 63645.513016
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 512067.652000, stdev: 69670.574379
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 474734.312000, stdev: 66740.797608
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 503982.088000, stdev: 49997.962184
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 524869.156000, stdev: 62721.480944
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 535448.094000, stdev: 71711.832561
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 528161.810000, stdev: 49440.363994
-audrey@Merlin:~/benchmarking$ ./client client
-Average: 512376.664000, stdev: 54210.669916
+Remote RTT:
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 512352.874000, stdev: 67519.156142
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 517080.884000, stdev: 70211.251783
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 476452.084000, stdev: 66668.291041
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 517267.722000, stdev: 64365.189153
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 515342.872000, stdev: 63560.388173
+audrey@Merlin:~/benchmarking$
 
+Local RTT:
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 36373.550000, stdev: 19688.930764
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 32881.774000, stdev: 13039.926939
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 35475.756000, stdev: 19643.551593
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 34831.998000, stdev: 14610.788435
+audrey@Merlin:~/benchmarking$ ./client rtt
+Average: 33833.828000, stdev: 16787.148262
+
+
+Remote ping:
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 951808.446000, stdev: 362649.303857
+Average: 877308.706000, stdev: 108267.161193
 Starting ping...
-Average: 3865273.874000, stdev: 132288.723303
+Average: 3809903.580000, stdev: 249301.298569
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 924165.560000, stdev: 336189.157673
+Average: 877205.158000, stdev: 146219.661582
 Starting ping...
-Average: 3886123.052000, stdev: 327854.282865
+Average: 3840827.240000, stdev: 160012.695259
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 915551.336000, stdev: 112514.530180
+Average: 874171.522000, stdev: 169169.723098
 Starting ping...
-Average: 3841501.506000, stdev: 638300.064880
+Average: 3873239.920000, stdev: 186211.150293
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 936063.472000, stdev: 141345.481359
+Average: 885297.976000, stdev: 397190.516666
 Starting ping...
-Average: 3895598.154000, stdev: 419010.456068
+Average: 3848680.406000, stdev: 217789.283213
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 902607.912000, stdev: 217394.645603
+Average: 881895.884000, stdev: 116275.730504
 Starting ping...
-Average: 3908724.106000, stdev: 438394.773572
+Average: 3841582.094000, stdev: 341701.985649
+audrey@Merlin:~/benchmarking$
+
+Local ping:
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 949100.752000, stdev: 216431.127115
+Average: 877617.002000, stdev: 121982.502441
 Starting ping...
-Average: 3900428.942000, stdev: 261064.640142
+Average: 3018089.804000, stdev: 233605.841524
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 934732.050000, stdev: 196396.818762
+Average: 880866.152000, stdev: 127951.292185
 Starting ping...
-Average: 3901750.038000, stdev: 558678.036797
+Average: 3015843.804000, stdev: 225639.360760
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 933403.468000, stdev: 321056.051417
+Average: 868373.960000, stdev: 109242.156557
 Starting ping...
-Average: 3905743.652000, stdev: 317614.397708
+Average: 2942006.292000, stdev: 286227.367307
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 922693.112000, stdev: 189053.289083
+Average: 884429.778000, stdev: 121143.079349
 Starting ping...
-Average: 3892754.744000, stdev: 185458.204719
+Average: 2977421.396000, stdev: 293109.927589
 audrey@Merlin:~/benchmarking$ ./client ping
 Starting system overhead check...
-Average: 929742.446000, stdev: 133849.018473
+Average: 869696.926000, stdev: 162507.619671
 Starting ping...
-Average: 3939221.522000, stdev: 451620.849825
+Average: 3015432.370000, stdev: 263437.912578
+audrey@Merlin:~/benchmarking$
+
+
+Remote bandwidth: Results saved in bandwidth_results_n.txt (n=1-5)
+Local bandwidth: Results in local_bw_results_n.txt (n=1-5)
+
+Remote setup/teardown: First line is setup, second line is teardown. Units are seconds
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000201, stdev: 0.000021
+Average: 0.000002, stdev: 0.000000
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000204, stdev: 0.000022
+Average: 0.000002, stdev: 0.000000
+audrey@Merlin:~/benchmarking$
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000208, stdev: 0.000035
+Average: 0.000002, stdev: 0.000000
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000203, stdev: 0.000030
+Average: 0.000002, stdev: 0.000000
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000203, stdev: 0.000023
+Average: 0.000002, stdev: 0.000000
+audrey@Merlin:~/benchmarking$
+
+Local setup/teardown:
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000025, stdev: 0.000005
+Average: 0.000003, stdev: 0.000001
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000019, stdev: 0.000002
+Average: 0.000003, stdev: 0.000000
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000019, stdev: 0.000001
+Average: 0.000003, stdev: 0.000000
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000018, stdev: 0.000002
+Average: 0.000002, stdev: 0.000000
+audrey@Merlin:~/benchmarking$ ./client setup
+Average: 0.000019, stdev: 0.000003
+Average: 0.000003, stdev: 0.000000
 audrey@Merlin:~/benchmarking$
