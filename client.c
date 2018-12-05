@@ -121,7 +121,7 @@ void perform_bandwidth_measurement(int socket) {
   int counter = 0;
   int num_time_measurements = 0;
 
-  int seconds_to_measure = 30;
+  int seconds_to_measure = 9;
   int measure_interval = 100;
   // When measure_interval=100, measurement code gets called approx. 75 times/sec.
   // Round up to 100 to prevent overflows.
