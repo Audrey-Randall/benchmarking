@@ -25,10 +25,10 @@ int main(int argc, char** argv) {
   assert(acceptor_socket >= 0);
 
   while(1) {
-    char buffer[1024] = {0};
-    int bytes_read = read(acceptor_socket , buffer, 1024);
+    char buffer[64000] = {0};
+    int bytes_read = read(acceptor_socket , buffer, 64000);
     //printf("Buffer: %s\n", buffer);
-    char* resp = ".";
+    //char* resp = ".";
     //send(acceptor_socket, resp, strlen(resp), 0);
     //printf(".");
   }
