@@ -174,13 +174,70 @@ int client_setup() {
   serv_addr.sin_port = htons(9090);
 
   // Convert IPv4 and IPv6 addresses from text to binary form
-  assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  // assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
       printf("\nConnection Failed \n");
       return -1;
   }
   return sock;
+}
+
+int measure_handshake_time(int num_trials) {
+  int sock = -1;
+  int conn_failed, shutdown_failed, start, end;
+  int success_connects = 0;
+  int success_shutdowns = 0;
+  double setup_cycles[num_trials];
+  double shutdown_cycles[num_trials];
+  struct sockaddr_in serv_addr;
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(9090);
+  // assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+
+  for (int i = 0; i < num_trials; i++) {
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    assert(sock >= 0);
+    rdtsc();
+    conn_failed = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    rdtsc1();
+    if (conn_failed < 0) {
+        printf("\nConnection Failed \n");
+        continue;
+    }
+    success_connects++;
+    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    setup_cycles[i] = end - start;
+    // close socket
+    rdtsc();
+    shutdown_failed = shutdown(sock, SHUT_RDWR);
+    rdtsc1();
+    if(shutdown_failed) {
+      perror("Shutdown failed");
+      continue;
+    }
+    success_shutdowns++;
+    start = ( ((uint64_t)cycles_high << 32) | cycles_low );
+    end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
+    shutdown_cycles[i] = end - start;
+    close(sock);
+
+    // Make sure server socket has time to close
+    nanosleep((const struct timespec[]){{0, 50000000L}}, NULL);
+  }
+  double r = 3.7*1000000000;
+  double setup_avg, setup_stdev;
+  stdev_and_avg(setup_cycles, success_connects, &setup_avg, &setup_stdev);
+  printf("Average: %lf, stdev: %lf\n", setup_avg/r, setup_stdev/r);
+
+  double shutdown_avg, shutdown_stdev;
+  stdev_and_avg(shutdown_cycles, success_shutdowns, &shutdown_avg, &shutdown_stdev);
+  printf("Average: %lf, stdev: %lf\n", shutdown_avg/r, shutdown_stdev/r);
+
+  return 0;
 }
 
 int main(int argc, char** argv) {
@@ -204,6 +261,8 @@ int main(int argc, char** argv) {
         printf("Error initializing client: Bandwidth measurement could not be"
         " performed.\n");
       }
+    } else if (strcmp(argv[1], "setup") == 0) {
+      measure_handshake_time(trials);
     }
     return 0;
 }
