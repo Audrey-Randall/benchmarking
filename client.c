@@ -69,6 +69,7 @@ int rtt_client(int num_trials) {
 
   // Convert IPv4 and IPv6 addresses from text to binary form
   assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  // assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
       printf("\nConnection Failed \n");
@@ -76,8 +77,7 @@ int rtt_client(int num_trials) {
   }
 
   for(int i = 0; i < num_trials; i++) {
-    char msg[3];
-    sprintf(msg, "%d", i);
+    char* msg = "r";
     int n;
     rdtsc();
     n = send(sock, msg, strlen(msg), 0);
@@ -191,11 +191,13 @@ int measure_handshake_time(int num_trials) {
   int success_shutdowns = 0;
   double setup_cycles[num_trials];
   double shutdown_cycles[num_trials];
+  char* msg = "s";
+  int n;
   struct sockaddr_in serv_addr;
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(9090);
-  // assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
-  assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
+   assert(inet_pton(AF_INET, "137.110.222.3", &serv_addr.sin_addr)>0);
+  // assert(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)>0);
 
   for (int i = 0; i < num_trials; i++) {
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -211,6 +213,12 @@ int measure_handshake_time(int num_trials) {
     start = ( ((uint64_t)cycles_high << 32) | cycles_low );
     end = ( ((uint64_t)cycles_high1 << 32) | cycles_low1 );
     setup_cycles[i] = end - start;
+    // send msg so that server knows which test is being performed
+    n = send(sock, msg, strlen(msg), 0);
+    if(n==-1) {
+      printf("Send failed\n");
+      continue;
+    }
     // close socket
     rdtsc();
     shutdown_failed = shutdown(sock, SHUT_RDWR);
