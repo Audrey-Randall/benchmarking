@@ -12,6 +12,7 @@ int main(int argc, char** argv) {
   int opt = 1;
   int addrlen = sizeof(address);
   assert(socket_fd != 0);
+  char* resp = ".";
 
   assert(!setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)));
   address.sin_family = AF_INET;
@@ -27,9 +28,23 @@ int main(int argc, char** argv) {
   while(1) {
     char buffer[64000] = {0};
     int bytes_read = read(acceptor_socket , buffer, 64000);
-    //printf("Buffer: %s\n", buffer);
-    //char* resp = ".";
-    //send(acceptor_socket, resp, strlen(resp), 0);
+    printf("Buffer: %s\n", buffer);
+	if (bytes_read == 0) {
+		break;
+	} 
+	if (buffer[0] == 'r') {
+		// Client is performing rtt measurement
+    	send(acceptor_socket, resp, strlen(resp), 0);
+	} else if (buffer[0] == 's') {
+		// Client is performing setup and teardown measurement
+		// Wait for client to shut down socket (don't shut it down too early or the
+		// client's measurement will be off)
+		nanosleep((const struct timespec[]){{0, 2500000L}}, NULL);
+		close(acceptor_socket);
+		acceptor_socket = accept(socket_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+  		assert(acceptor_socket >= 0);
+
+	}
     //printf(".");
   }
   return 0;
